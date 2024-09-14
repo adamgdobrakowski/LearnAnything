@@ -2,3 +2,6 @@ numpy
 pandas
 openai
 streamlit
+dotenv
+crewai
+tavily-python

@@ -2,16 +2,38 @@ import streamlit as st
 from io import BytesIO
 import json
 
-from llm import get_flashcards, get_question, get_quiz
+from llm import get_flashcards, get_quiz
+from web_search import get_content
 
 # Streamlit app layout
 st.title('LearnAnything - The Flashcard and Quiz Generator')
 
+content = None
+
 # Upload a document
 uploaded_file = st.file_uploader("Upload a document", type=['txt', 'docx', 'pdf'])
-
 if uploaded_file is not None:
     st.write("File uploaded successfully!")
+    content = uploaded_file.getvalue()
+
+query = st.text_input("Enter your idea for searching the web:")
+if query:
+    try:
+        # Run the get_content function with the user's query
+        content = get_content(query)
+        st.success("Content retrieved successfully!")
+
+        st.download_button(
+            label="Download the content",
+            data=content,
+            file_name=f"{query}.txt",
+            mime="text/plain"
+        )
+    except Exception as e:
+        st.error(f"An error occurred while fetching content: {str(e)}")
+        content = None
+
+if content is not None:
     
     num_lines = st.number_input(
         label="Set number of flashcards",
@@ -21,11 +43,11 @@ if uploaded_file is not None:
     )
 
     if st.button('Generate flashcards'):
-        st.write("Processing the file...")
+        st.write("Processing the content...")
 
-        df = get_flashcards(uploaded_file.getvalue(), num_lines)
+        df = get_flashcards(content, num_lines)
         
-        st.write("File processed successfully!")
+        st.write("Content processed successfully!")
         
         st.dataframe(df)
         
@@ -42,7 +64,7 @@ if uploaded_file is not None:
 
     # Add a button to start the quiz
     if st.button('Start Quiz'):
-        st.session_state.quiz_data = get_quiz(uploaded_file.getvalue(), 15)
+        st.session_state.quiz_data = get_quiz(content, 15)
         st.session_state.quiz_started = True
         st.session_state.current_index = 0
         st.session_state.score = 0

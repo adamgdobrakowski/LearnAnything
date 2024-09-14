@@ -5,10 +5,14 @@ This project is a simple interactive web app built using [Streamlit](https://str
 ## Features
 
 1. **Upload Document to Generate CSV**: Users can upload a document (e.g., `.txt`, `.docx`, or `.pdf`), and the app sends it to the LLM API to retrieve and download a generated CSV with flashcards.
+
+2. **Search the Web and Download Content**:
+    - Users can input a query to search the web and download the content for learning.
+    - The download content can be downloaded as a `.txt` file.
    
 2. **Knowledge Check Options**:
     - **Quiz**: A simple quiz interface where users answer predefined questions.
-    - **Open Questions**: A chat-like experience where users receive a question, can either answer it or request help, and then move on to the next question.
+    - **Open Questions**: TBD
 
 ## Tech Stack
 
@@ -70,7 +74,10 @@ To run the app locally, follow these steps:
    
 2. **Main Features**:
     - **Upload Document**: Upload a file, set the number of flashcards, click "Generate flashcards" and download the generated CSV.
-    - **Upload flashcards to your favourite tool** You can use [Memrise](https://community-courses.memrise.com/dashboard) or DuoLingo to learn this information 
+
+    - **Seach the Web**: Make a query, search the web and download the content. Then set the number of flashcards, click "Generate flashcards" and download the generated CSV.
+
+    - **Upload flashcards to your favourite tool** You can use e.g. [Memrise](https://community-courses.memrise.com/dashboard)  to learn this information 
     - **Check My Knowledge**: Click the "Check my knowledge" button, and choose from the available options:
         - **Start Quiz**: Take a predefined knowledge quiz.
         - **Open Questions**: Answer open-ended questions with an option to get help.
@@ -78,12 +85,3 @@ To run the app locally, follow these steps:
 3. **Quiz**: You can answer each question, submit your answer, and see the final score.
    
 4. **Open Questions**: Respond to one question at a time, ask for help, and move on to the next question.
-
-
-## Dependencies
-
-The dependencies for this project are listed in the `requirements.txt` file. They include:
-
-- `streamlit`
-- `requests`
-- `pandas`

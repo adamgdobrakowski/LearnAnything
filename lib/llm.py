@@ -5,6 +5,8 @@ import pandas as pd
 import streamlit as st
 import os
 
+MAX_TOKENS=16000
+
 load_dotenv()
 base_url = "https://api.aimlapi.com/v1"
 api_key = os.getenv("AIML_API_KEY")
@@ -33,7 +35,7 @@ def get_flashcards(document, n):
         Question2, answer2
 
         ---
-        {document}
+        {document[:MAX_TOKENS-500]}
         ---
         """
 
@@ -45,7 +47,7 @@ def get_flashcards(document, n):
             {"role": "user", "content": user_prompt},
         ],
         temperature=0.01,
-        max_tokens=16000,
+        max_tokens=MAX_TOKENS,
         response_format=FlashcardList,
     )
 
