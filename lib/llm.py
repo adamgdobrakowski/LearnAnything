@@ -7,7 +7,7 @@ import os
 
 load_dotenv()
 base_url = "https://api.aimlapi.com/v1"
-api_key = "b9031610d7ae4e2497a5b62f331ebfbf" #os.getenv("AIML_API_KEY")
+api_key = os.getenv("AIML_API_KEY")
 
 system_prompt = "You are an AI tutor. Be descriptive and helpful."
 
