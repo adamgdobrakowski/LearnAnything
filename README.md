@@ -18,6 +18,7 @@ This project is a simple interactive web app built using [Streamlit](https://str
 
 - [Streamlit](https://streamlit.io/) - Web framework for building the interactive UI.
 - [AIML API](https://aimlapi.com/a) - Used to process documents and generate questions.
+- [Tavily](https://tavily.com/) - API for searching the web.
 - Python - The programming language used to create the app.
 
 ## Installation
