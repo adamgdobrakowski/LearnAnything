@@ -1,9 +1,11 @@
+from dotenv import load_dotenv
 from openai import OpenAI
 from pydantic import BaseModel
 import pandas as pd
 import streamlit as st
 import os
 
+load_dotenv()
 base_url = "https://api.aimlapi.com/v1"
 api_key = os.getenv("AIML_API_KEY")
 
@@ -48,7 +50,23 @@ def get_flashcards(document, n):
     )
 
     response = completion.choices[0].message.parsed
-    q = [r.split(', ') for r in response.flashcards]
+    # st.write(response)
+
+    def split_resp(r):
+        splitted = r.split(',')
+        for i, s in enumerate(splitted):
+            if type(s) is not str:
+                splitted[i] = str(s)
+
+        if len(splitted) == 2:
+            return splitted
+        if len(splitted) == 1:
+            return [splitted[0], ""]
+        return "".join(splitted[:-1]), splitted[-1]
+
+
+    q = [split_resp(r) for r in response.flashcards]
+    #st.write(q)
     df = pd.DataFrame(q, columns=['Question', 'Answer'])
 
     return df
