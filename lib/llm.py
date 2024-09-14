@@ -7,7 +7,7 @@ import os
 
 load_dotenv()
 base_url = "https://api.aimlapi.com/v1"
-api_key = os.getenv("AIML_API_KEY")
+api_key = "b9031610d7ae4e2497a5b62f331ebfbf" #os.getenv("AIML_API_KEY")
 
 system_prompt = "You are an AI tutor. Be descriptive and helpful."
 
@@ -68,6 +68,7 @@ def get_flashcards(document, n):
     q = [split_resp(r) for r in response.flashcards]
     #st.write(q)
     df = pd.DataFrame(q, columns=['Question', 'Answer'])
+    #st.write(df)
 
     return df
 
@@ -104,3 +105,67 @@ def get_question(document):
         """
 
     return run_openai(user_prompt)
+
+
+class Question(BaseModel):
+    question: str
+    information: str
+    options: list[str]
+    answer: str
+
+class QuizList(BaseModel):
+    quiz: list[Question]
+
+def get_quiz(document, n):
+
+    user_prompt = f"""
+        Prepare {n} quiz questions and answers from the input document.
+
+        Expected information for each question:
+
+        "question": Here is your question,
+        "information": This is a fragment of document, answering the question,
+        "options": [Option1, Option2, Option3, Option4],
+        "answer": Option2
+
+        Format your output in JSON format.
+        __
+
+        Example output:
+
+
+    
+        "question": "What is the primary goal of artificial intelligence?",
+        "information": "This field of computer science aims to create systems capable of performing tasks that would typically require human intelligence.",
+        "options": ["To simulate human intelligence", "To enhance computer speed", "To replace human jobs", "To improve data storage"],
+        "answer": "To simulate human intelligence"
+    ,
+    
+        "question": "What is 'machine learning' in the context of artificial intelligence?",
+        "information": "This is a subset of artificial intelligence that involves the creation of systems that can learn from and make decisions based on data.",
+        "options": ["A new programming language", "A data processing method", "A subset of artificial intelligence", "A type of computer hardware"],
+        "answer": "A subset of artificial intelligence"
+    
+
+
+        ---
+        {document}
+        ---
+        """
+
+
+    completion = api.beta.chat.completions.parse(
+        model="gpt-4o-2024-08-06",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        temperature=0.01,
+        max_tokens=16000,
+        response_format=QuizList,
+    )
+
+    response = completion.choices[0].message.parsed
+
+    return response.quiz
+

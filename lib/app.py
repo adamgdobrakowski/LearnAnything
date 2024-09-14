@@ -1,7 +1,8 @@
 import streamlit as st
 from io import BytesIO
+import json
 
-from llm import get_flashcards, get_question
+from llm import get_flashcards, get_question, get_quiz
 
 # Streamlit app layout
 st.title('LearnAnything - The Flashcard and Quiz Generator')
@@ -14,9 +15,9 @@ if uploaded_file is not None:
     
     num_lines = st.number_input(
         label="Set number of flashcards",
-        min_value=5,  # Minimum value for the input
-        max_value=50,  # Maximum value is the total rows in the dataframe
-        value=30  # Default value is the total number of rows
+        min_value=5,
+        max_value=50,
+        value=30
     )
 
     if st.button('Generate flashcards'):
@@ -39,33 +40,87 @@ if uploaded_file is not None:
             mime="text/csv"
         )
 
-# Add a "Check my knowledge" button
-if st.button("Quiz"):
-    with st.expander("Quiz", expanded=True):
-        st.subheader("Quiz Time!")
+    # Add a button to start the quiz
+    if st.button('Start Quiz'):
+        st.session_state.quiz_data = get_quiz(uploaded_file.getvalue(), 15)
+        st.session_state.quiz_started = True
+        st.session_state.current_index = 0
+        st.session_state.score = 0
+        st.session_state.selected_option = None
+        st.session_state.answer_submitted = False
 
-        quiz_data = {
-            "What is the capital of France?": "Paris",
-            "Who wrote '1984'?": "George Orwell",
-            "What is the square root of 64?": "8"
-        }
+# Initialize session variables if they do not exist
+default_values = {
+    'current_index': 0,
+    'score': 0,
+    'selected_option': None,
+    'answer_submitted': False,
+    'quiz_started': False
+}
+for key, value in default_values.items():
+    if key not in st.session_state:
+        st.session_state[key] = value
 
-        score = 0  
-        total_questions = len(quiz_data)
+def restart_quiz():
+    st.session_state.current_index = 0
+    st.session_state.score = 0
+    st.session_state.selected_option = None
+    st.session_state.answer_submitted = False
 
-        user_answers = {}
-        for question in quiz_data.keys():
-            user_answers[question] = st.text_input(f"Question: {question}", key=question)
+def submit_answer():
+    if st.session_state.selected_option is not None:
+        st.session_state.answer_submitted = True
+        if st.session_state.selected_option == st.session_state.quiz_data[st.session_state.current_index].answer:
+            st.session_state.score += 1
+    else:
+        st.warning("Please select an option before submitting.")
 
-        if st.button("Submit Quiz"):
-            for question, correct_answer in quiz_data.items():
-                user_answer = user_answers[question]
-                if user_answer:
-                    if user_answer.lower().strip() == correct_answer.lower().strip():
-                        st.write(f"Question: {question} - ✅ Correct!")
-                        score += 1
-                    else:
-                        st.write(f"Question: {question} - ❌ Incorrect! The correct answer is: {correct_answer}")
-            
-            st.write(f"Your score: {score}/{total_questions}")
+def next_question():
+    st.session_state.current_index += 1
+    st.session_state.selected_option = None
+    st.session_state.answer_submitted = False
 
+if st.session_state.quiz_started and 'quiz_data' in st.session_state:
+    # Progress bar
+    progress_bar_value = (st.session_state.current_index + 1) / len(st.session_state.quiz_data)
+    st.metric(label="Score", value=f"{st.session_state.score} / {len(st.session_state.quiz_data)}")
+    st.progress(progress_bar_value)
+
+    # Display the question and answer options
+    question_item = st.session_state.quiz_data[st.session_state.current_index]
+    st.subheader(f"Question {st.session_state.current_index + 1}")
+    st.title(f"{question_item.question}")
+
+    st.markdown(""" ___""")
+
+    # Answer selection
+    options = question_item.options
+    correct_answer = question_item.answer
+
+    if st.session_state.answer_submitted:
+        for i, option in enumerate(options):
+            label = option
+            if option == correct_answer:
+                st.success(f"{label} (Correct answer)")
+            elif option == st.session_state.selected_option:
+                st.error(f"{label} (Incorrect answer)")
+            else:
+                st.write(label)
+    else:
+        for i, option in enumerate(options):
+            if st.button(option, key=i, use_container_width=True):
+                st.session_state.selected_option = option
+
+    st.markdown(""" ___""")
+
+    # Submission button and response logic
+    if st.session_state.answer_submitted:
+        if st.session_state.current_index < len(st.session_state.quiz_data) - 1:
+            st.button('Next', on_click=next_question)
+        else:
+            st.write(f"Quiz completed! Your score is: {st.session_state.score} / {len(st.session_state.quiz_data)}")
+            if st.button('Restart', on_click=restart_quiz):
+                pass
+    else:
+        if st.session_state.current_index < len(st.session_state.quiz_data):
+            st.button('Submit', on_click=submit_answer)
