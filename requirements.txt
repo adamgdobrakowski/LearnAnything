@@ -5,3 +5,4 @@ streamlit
 python-dotenv
 crewai
 tavily-python
+beautifulsoup4
